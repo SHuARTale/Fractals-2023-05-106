@@ -3,17 +3,15 @@ package ru.gr106.fractal.gui
 import ru.smak.drawing.Converter
 import ru.smak.drawing.Plane
 import math.Mandelbrot
+import org.jcodec.common.model.Plane
 import ru.gr106.fractal.main
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.MenuBar
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
+import java.awt.event.*
+import java.util.*
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JButton
@@ -30,6 +28,12 @@ class Window : JFrame() {
 
     private val mainPanel: DrawingPanel
     private val fp: FractalPainter
+    private var cancelAction: Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>
+    private val xyCorr: Double
+    private var xMin = 0.0
+    private var xMax = 0.0
+    private var yMin = 0.0
+    private var yMax = 0.0
 
     init{
         fp = FractalPainter(Mandelbrot)
@@ -37,18 +41,15 @@ class Window : JFrame() {
         defaultCloseOperation = EXIT_ON_CLOSE
         minimumSize = Dimension(600, 550)
         mainPanel = DrawingPanel(fp)
+        val p = Plane(-2.0, 1.0, -1.0, 1.0, mainPanel.width, mainPanel.height)
+        xMin = p.xMin
+        yMin = p.yMin
+        xMax = p.xMax
+        yMax = p.yMax
+        xyCorr = abs(xMax - xMin) / abs(yMax - yMin)
+        cancelAction = Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>()
 
 
-
-        mainPanel.addComponentListener(object : ComponentAdapter(){
-            override fun componentResized(e: ComponentEvent?) {
-                fp.plane?.width = mainPanel.width
-                fp.plane?.height = mainPanel.height
-
-                fp.previous_img = null
-                mainPanel.repaint()
-            }
-        })
         mainPanel.addSelectedListener {rect ->
             fp.plane?.let {
                 val xMin = Converter.xScr2Crt(rect.x, it)
@@ -59,7 +60,11 @@ class Window : JFrame() {
                 it.yMin = yMin
                 it.xMax = xMax
                 it.yMax = yMax
-
+                val mapOfCoord = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
+                val pairX = Pair(xMin, xMax)
+                val pairY = Pair(yMin, yMax)
+                mapOfCoord.put(pairX, pairY)
+                cancelAction.push(mapOfCoord)
                 fp.previous_img = null
                 mainPanel.repaint()
             }
@@ -123,6 +128,26 @@ class Window : JFrame() {
         val undo = JMenuItem("Назад")
         edit.add(undo)
         undo.addActionListener { _: ActionEvent -> undoFunc() }
+        undo.addMouseListener(object: MouseAdapter(){
+            override fun mouseClicked(e: MouseEvent?) {
+                if (cancelAction.size != 1){
+                    cancelAction.pop()
+                    var afterRemoval = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
+                    afterRemoval = cancelAction.peek() as MutableMap<Pair<Double, Double>, Pair<Double, Double>>
+                    val xPair = afterRemoval.keys.toList()
+                    val yPair = afterRemoval.values.toList()
+                    val xMin = xPair[0].first
+                    val xMax = xPair[0].second
+                    val yMin = yPair[0].first
+                    val yMax = yPair[0].second
+                    fp.plane?.xMax = xMax
+                    fp.plane?.xMin = xMin
+                    fp.plane?.yMax = yMax
+                    fp.plane?.yMin = yMin
+                }
+                mainPanel.repaint()
+            }
+        })
 
         val redo = JMenuItem("Вперёд")
         edit.add(redo)
