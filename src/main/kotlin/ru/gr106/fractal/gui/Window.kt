@@ -49,6 +49,23 @@ class Window : JFrame() {
         xyCorr = abs(xMax - xMin) / abs(yMax - yMin)
         cancelAction = Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>()
 
+        mainPanel.addComponentListener(object : ComponentAdapter(){
+            override fun componentResized(e: ComponentEvent?) {
+                fp.plane?.width = mainPanel.width
+                fp.plane?.height = mainPanel.height
+                var newXMin = Converter.xScr2Crt(0, p)
+                var newXMax = Converter.xScr2Crt(mainPanel.width, p)
+                var newYMin = Converter.yScr2Crt(mainPanel.height, p)
+                var newYMax = Converter.yScr2Crt(0, p)
+                val xPair = Pair(newXMin, newXMax)
+                val yPair = Pair(newYMin, newYMax)
+                val mapOfCoord = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
+                mapOfCoord.put(xPair, yPair)
+                cancelAction.push(mapOfCoord)
+                mainPanel.repaint()
+            }
+        })
+
 
         mainPanel.addSelectedListener {rect ->
             fp.plane?.let {
@@ -69,6 +86,8 @@ class Window : JFrame() {
                 mainPanel.repaint()
             }
         }
+
+
         mainPanel.background = Color.WHITE
         layout = GroupLayout(contentPane).apply {
             setVerticalGroup(
