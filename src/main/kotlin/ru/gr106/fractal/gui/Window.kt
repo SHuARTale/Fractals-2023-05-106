@@ -42,11 +42,7 @@ class Window : JFrame() {
         minimumSize = Dimension(600, 550)
         mainPanel = DrawingPanel(fp)
         val p = Plane(-2.0, 1.0, -1.0, 1.0, mainPanel.width, mainPanel.height)
-        xMin = p.xMin
-        yMin = p.yMin
-        xMax = p.xMax
-        yMax = p.yMax
-        xyCorr = abs(xMax - xMin) / abs(yMax - yMin)
+        mainPanel.requestFocus(true)
         cancelAction = Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>()
 
         mainPanel.addComponentListener(object : ComponentAdapter(){ //надо дебажить, работает не совсем корректно. исправлю

@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="64fc321e-fd31-4862-89fb-6fba6a4b77ad" name="Changes" comment="Добавлено событие изменения размеров окна для того, чтобы отмена действий пользователя работала корректно">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="64fc321e-fd31-4862-89fb-6fba6a4b77ad" name="Changes" comment="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -154,7 +152,14 @@
       <option name="project" value="LOCAL" />
       <updated>1701529003198</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю).">
+      <created>1701628267196</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1701628267196</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -176,6 +181,7 @@
     <MESSAGE value="Меню" />
     <MESSAGE value="Добавлена возможность отмены действий пользователя на кнопку &quot;Назад&quot;" />
     <MESSAGE value="Добавлено событие изменения размеров окна для того, чтобы отмена действий пользователя работала корректно" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлено событие изменения размеров окна для того, чтобы отмена действий пользователя работала корректно" />
+    <MESSAGE value="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
+    <option name="LAST_COMMIT_MESSAGE" value="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
   </component>
 </project>
