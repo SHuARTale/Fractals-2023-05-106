@@ -49,21 +49,69 @@ class Window : JFrame() {
         xyCorr = abs(xMax - xMin) / abs(yMax - yMin)
         cancelAction = Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>()
 
-        mainPanel.addComponentListener(object : ComponentAdapter(){
+        mainPanel.addComponentListener(object : ComponentAdapter(){ //надо дебажить, работает не совсем корректно. исправлю
             override fun componentResized(e: ComponentEvent?) {
                 fp.plane?.width = mainPanel.width
                 fp.plane?.height = mainPanel.height
-                var newXMin = Converter.xScr2Crt(0, p)
-                var newXMax = Converter.xScr2Crt(mainPanel.width, p)
+
                 var newYMin = Converter.yScr2Crt(mainPanel.height, p)
-                var newYMax = Converter.yScr2Crt(0, p)
+                var newYMax = newYMin + p.height / 229.5
+                var newXMin = Converter.xScr2Crt(0, p)
+                var newXMax = p.width / 195.4 + newXMin
+
+                val newXYCorr = ((abs(newXMax - newXMin) / abs(newYMax - newYMin)) * 10).roundToInt() / 10.0
+
+                if (newXYCorr > 1.5) {
+                    val difference = newXYCorr / 1.5
+                    val coeff = difference - 1
+                    //newYMin -= coeff / 2 * abs(newYMax - newYMin)
+                    newYMax += coeff / 2 * abs(newYMax - newYMin)
+                }
+                else if (newXYCorr < 1.5) {
+                    val difference = 1.5 / newXYCorr
+                    val coeff = difference - 1
+                    //newXMin -= coeff / 2 * abs(newXMax - newXMin)
+                    newXMax += coeff / 2 * abs(newXMax - newXMin)
+                }
                 val xPair = Pair(newXMin, newXMax)
                 val yPair = Pair(newYMin, newYMax)
                 val mapOfCoord = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
                 mapOfCoord.put(xPair, yPair)
                 cancelAction.push(mapOfCoord)
+                fp.plane?.xMax = newXMax
+                fp.plane?.xMin = newXMin
+                fp.plane?.yMin = newYMin
+                fp.plane?.yMax = newYMax
+                fp.plane?.height = mainPanel.height
+                fp.plane?.width = mainPanel.width
                 mainPanel.repaint()
             }
+        })
+
+        mainPanel.addKeyListener(object: KeyAdapter(){ //по какой-то причине не срабатывает. доработаю
+            override fun keyTyped(e: KeyEvent?) {
+                if (e != null) {
+                    if (e.keyCode == KeyEvent.VK_Z && e.isControlDown){
+                        if (cancelAction.size != 1){
+                            cancelAction.pop()
+                            var afterRemoval = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
+                            afterRemoval = cancelAction.peek() as MutableMap<Pair<Double, Double>, Pair<Double, Double>>
+                            val xPair = afterRemoval.keys.toList()
+                            val yPair = afterRemoval.values.toList()
+                            val xMin = xPair[0].first
+                            val xMax = xPair[0].second
+                            val yMin = yPair[0].first
+                            val yMax = yPair[0].second
+                            fp.plane?.xMax = xMax
+                            fp.plane?.xMin = xMin
+                            fp.plane?.yMax = yMax
+                            fp.plane?.yMin = yMin
+                        }
+                        mainPanel.repaint()
+                    }
+                }
+            }
+
         })
 
 
