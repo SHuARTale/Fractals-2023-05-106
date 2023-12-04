@@ -12,15 +12,8 @@ import java.awt.Graphics
 import java.awt.MenuBar
 import java.awt.event.*
 import java.util.*
-import javax.swing.GroupLayout
+import javax.swing.*
 import javax.swing.GroupLayout.PREFERRED_SIZE
-import javax.swing.JButton
-import javax.swing.JFrame
-import javax.swing.JMenu
-import javax.swing.JMenuBar
-import javax.swing.JMenuItem
-import javax.swing.JPanel
-import javax.swing.JPopupMenu
 import javax.swing.event.MenuListener
 import kotlin.math.*
 
@@ -29,11 +22,14 @@ class Window : JFrame() {
     private val mainPanel: DrawingPanel
     private val fp: FractalPainter
     private var cancelAction: Stack<Map<Pair<Double, Double>, Pair<Double, Double>>>
-    private val xyCorr: Double
-    private var xMin = 0.0
-    private var xMax = 0.0
-    private var yMin = 0.0
-    private var yMax = 0.0
+    private var newWidth: Int = 0
+    private var newHeight: Int = 0
+    private var dx: Double = 0.0
+    private var dy: Double = 0.0
+    private val yMin = -1.0
+    private val yMax = 1.0
+    private var xMin = -2.0
+    private val xMax = 1.0
 
     init{
         fp = FractalPainter(Mandelbrot)
@@ -49,25 +45,36 @@ class Window : JFrame() {
             override fun componentResized(e: ComponentEvent?) {
                 fp.plane?.width = mainPanel.width
                 fp.plane?.height = mainPanel.height
+                newHeight = mainPanel.height
+                newWidth = mainPanel.width
 
-                var newYMin = Converter.yScr2Crt(mainPanel.height, p)
-                var newYMax = newYMin + p.height / 229.5
-                var newXMin = Converter.xScr2Crt(0, p)
-                var newXMax = p.width / 195.4 + newXMin
+                val OXlength = xMax - xMin
+                val OYlength = yMax - yMin
 
-                val newXYCorr = ((abs(newXMax - newXMin) / abs(newYMax - newYMin)) * 10).roundToInt() / 10.0
+                var newXMax = xMax
+                var newXMin = xMin
+                var newYMax = yMax
+                var newYMin = yMin
 
-                if (newXYCorr > 1.5) {
-                    val difference = newXYCorr / 1.5
-                    val coeff = difference - 1
-                    //newYMin -= coeff / 2 * abs(newYMax - newYMin)
-                    newYMax += coeff / 2 * abs(newYMax - newYMin)
-                }
-                else if (newXYCorr < 1.5) {
-                    val difference = 1.5 / newXYCorr
-                    val coeff = difference - 1
-                    //newXMin -= coeff / 2 * abs(newXMax - newXMin)
-                    newXMax += coeff / 2 * abs(newXMax - newXMin)
+                val relationOXY = OXlength * 1.0 / OYlength
+
+                val relationWidthHeight = newWidth * 1.0 / newHeight
+
+                if (Math.abs(relationOXY - relationWidthHeight) > 1E-5){
+                    if (relationOXY < relationWidthHeight){
+                        val equFactor = newHeight * 1.0 / OYlength
+                        val proportion = OXlength * newWidth / (equFactor * OXlength)
+                        dx = proportion - OXlength
+                        newXMin -= dx
+                        newXMax += dx
+                    }
+                    if (relationOXY > relationWidthHeight){
+                        val equFactor = newWidth * 1.0 / OXlength
+                        val proportion = OYlength * newHeight / (equFactor * OYlength)
+                        dy = proportion - OYlength
+                        newYMin -= dy
+                        newYMax += dy
+                    }
                 }
                 val xPair = Pair(newXMin, newXMax)
                 val yPair = Pair(newYMin, newYMax)
@@ -83,33 +90,6 @@ class Window : JFrame() {
                 mainPanel.repaint()
             }
         })
-
-        mainPanel.addKeyListener(object: KeyAdapter(){ //по какой-то причине не срабатывает. доработаю
-            override fun keyTyped(e: KeyEvent?) {
-                if (e != null) {
-                    if (e.keyCode == KeyEvent.VK_Z && e.isControlDown){
-                        if (cancelAction.size != 1){
-                            cancelAction.pop()
-                            var afterRemoval = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
-                            afterRemoval = cancelAction.peek() as MutableMap<Pair<Double, Double>, Pair<Double, Double>>
-                            val xPair = afterRemoval.keys.toList()
-                            val yPair = afterRemoval.values.toList()
-                            val xMin = xPair[0].first
-                            val xMax = xPair[0].second
-                            val yMin = yPair[0].first
-                            val yMax = yPair[0].second
-                            fp.plane?.xMax = xMax
-                            fp.plane?.xMin = xMin
-                            fp.plane?.yMax = yMax
-                            fp.plane?.yMin = yMin
-                        }
-                        mainPanel.repaint()
-                    }
-                }
-            }
-
-        })
-
 
         mainPanel.addSelectedListener {rect ->
             fp.plane?.let {
@@ -191,26 +171,8 @@ class Window : JFrame() {
         val undo = JMenuItem("Назад")
         edit.add(undo)
         undo.addActionListener { _: ActionEvent -> undoFunc() }
-        undo.addMouseListener(object: MouseAdapter(){
-            override fun mouseClicked(e: MouseEvent?) {
-                if (cancelAction.size != 1){
-                    cancelAction.pop()
-                    var afterRemoval = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
-                    afterRemoval = cancelAction.peek() as MutableMap<Pair<Double, Double>, Pair<Double, Double>>
-                    val xPair = afterRemoval.keys.toList()
-                    val yPair = afterRemoval.values.toList()
-                    val xMin = xPair[0].first
-                    val xMax = xPair[0].second
-                    val yMin = yPair[0].first
-                    val yMax = yPair[0].second
-                    fp.plane?.xMax = xMax
-                    fp.plane?.xMin = xMin
-                    fp.plane?.yMax = yMax
-                    fp.plane?.yMin = yMin
-                }
-                mainPanel.repaint()
-            }
-        })
+        undo.accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_Z, toolkit.menuShortcutKeyMaskEx)
+
 
         val redo = JMenuItem("Вперёд")
         edit.add(redo)
@@ -283,7 +245,22 @@ class Window : JFrame() {
     }
 
     private fun undoFunc() {
-
+        if (cancelAction.size != 1) {
+            cancelAction.pop()
+            var afterRemoval = mutableMapOf<Pair<Double, Double>, Pair<Double, Double>>()
+            afterRemoval = cancelAction.peek() as MutableMap<Pair<Double, Double>, Pair<Double, Double>>
+            val xPair = afterRemoval.keys.toList()
+            val yPair = afterRemoval.values.toList()
+            val xMin = xPair[0].first
+            val xMax = xPair[0].second
+            val yMin = yPair[0].first
+            val yMax = yPair[0].second
+            fp.plane?.xMax = xMax
+            fp.plane?.xMin = xMin
+            fp.plane?.yMax = yMax
+            fp.plane?.yMin = yMin
+        }
+        mainPanel.repaint()
     }
 
 }

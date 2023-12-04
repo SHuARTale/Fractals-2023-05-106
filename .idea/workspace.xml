@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="64fc321e-fd31-4862-89fb-6fba6a4b77ad" name="Changes" comment="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
+    <list default="true" id="64fc321e-fd31-4862-89fb-6fba6a4b77ad" name="Changes" comment="434534">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ru/gr106/fractal/gui/Window.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/gr106/fractal/gui/Window.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -159,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1701628267196</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="434534">
+      <created>1701628741427</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1701628741427</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -182,6 +192,7 @@
     <MESSAGE value="Добавлена возможность отмены действий пользователя на кнопку &quot;Назад&quot;" />
     <MESSAGE value="Добавлено событие изменения размеров окна для того, чтобы отмена действий пользователя работала корректно" />
     <MESSAGE value="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлены события: отмена действий пользователя по комб. клавиш ctrl+z (по какой-то причине событие не срабатывает. 04.12 исправлю), изменение пропорций изображения (работает не корректно, также исправлю)." />
+    <MESSAGE value="434534" />
+    <option name="LAST_COMMIT_MESSAGE" value="434534" />
   </component>
 </project>
