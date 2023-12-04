@@ -2,12 +2,13 @@ package ru.gr106.fractal.gui
 
 import drawing.Converter
 import drawing.Plane
-import math.Mandelbrot
+import math.*
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.lang.reflect.MalformedParameterizedTypeException
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JFrame
@@ -16,9 +17,10 @@ import javax.swing.JMenuBar
 import javax.swing.JMenuItem
 import kotlin.math.*
 
-class Window : JFrame() {
+class Window(val f: AlgebraicFractal) : JFrame() {
 
 
+    private val af = f
     private val const = ln(15.0)
     private val mainPanel: DrawingPanel
     private val fp: FractalPainter
@@ -27,9 +29,12 @@ class Window : JFrame() {
 
 
     init {
-        fp = FractalPainter(Mandelbrot)
+        fp = FractalPainter(f)
         val menuBar = createMenuBar()
-        defaultCloseOperation = EXIT_ON_CLOSE
+        if(af is Mandelbrot)
+            defaultCloseOperation = EXIT_ON_CLOSE
+        else
+            defaultCloseOperation = DISPOSE_ON_CLOSE
         minimumSize = Dimension(600, 550)
         mainPanel = DrawingPanel(fp)
 
@@ -99,14 +104,28 @@ class Window : JFrame() {
         }
         mainPanel.background = Color.WHITE
         layout = GroupLayout(contentPane).apply {
-            setVerticalGroup(
-                createSequentialGroup()
-                    .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-                    .addGap(4)
-                    .addComponent(mainPanel)
-                    .addGap(8)
+            if(af is Mandelbrot)
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(8)
 
-            )
+                )
+            else
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(4)
+                        .addGroup()
+                        .addGap(8)
+
+                )
+
+
             setHorizontalGroup(
                 createParallelGroup()
                     .addComponent(menuBar)
@@ -232,10 +251,12 @@ cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
         menuBar.add(observe)
         observe.addActionListener { _: ActionEvent -> joulbertFunc() }
 
+        if(af !is Julia) {
         val joulbert = JMenuItem("Отрисовать множество Жюльберта")
         joulbert.setMnemonic('Ж')
         joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
         observe.add(joulbert)
+        }
 
         val view = JMenuItem("Экскурсия")
         view.setMnemonic('Э')
@@ -269,7 +290,9 @@ cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
     }
 
     private fun joulbertFunc() {
-
+        Window(Julia()).apply { isVisible = true
+            title = "Множество Жюлиа"
+        }
     }
 
     private fun redoFunc() {
