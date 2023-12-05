@@ -111,28 +111,6 @@ class Window(val f: AlgebraicFractal) : JFrame() {
             }
         }
         mainPanel.background = Color.WHITE
-        layout = GroupLayout(contentPane).apply {
-            setVerticalGroup(
-                createSequentialGroup()
-                    .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-                    .addGap(4)
-                    .addComponent(mainPanel)
-                    .addGap(8)
-
-            )
-            setHorizontalGroup(
-                createParallelGroup()
-                    .addComponent(menuBar)
-                    .addGroup(
-                        createSequentialGroup()
-                            .addGap(8)
-                            .addComponent(mainPanel)
-                            .addGap(8)
-                    )
-                    .addGap(4)
-            )
-        }
-        /*
         if (af is Mandelbrot)
             layout = GroupLayout(contentPane).apply {
                 setVerticalGroup(
@@ -158,24 +136,24 @@ class Window(val f: AlgebraicFractal) : JFrame() {
         else {
             val lblXCord = JLabel("X: ")
             val lblYCord = JLabel("Y: ")
-            val mdlXCord = SpinnerNumberModel(-0.74543 as Double, null, null, 0.000001)
-            val mdlYCord = SpinnerNumberModel(0.11301 as Double, null, null, 0.000001)
+            val mdlXCord = SpinnerNumberModel((af as Julia).x, null, null, 0.00001)
+            val mdlYCord = SpinnerNumberModel((af as Julia).y, null, null, 0.00001)
             val spnXCord = JSpinner(mdlXCord)
             val spnYCord = JSpinner(mdlYCord)
 
             mdlXCord.addChangeListener{
-
-                val test = Julia(mdlXCord.value as Double, (af as Julia).y)
-                af = test
+                (af as Julia).x = mdlXCord.value as Double
+                fp.previous_img = null
                 mainPanel.repaint()
             }
             mdlYCord.addChangeListener{
                 (af as Julia).y = mdlYCord.value as Double
+                fp.previous_img = null
                 mainPanel.repaint()
             }
 
-            spnXCord.setEditor(JSpinner.NumberEditor(spnXCord, "0.000000"));
-            spnYCord.setEditor(JSpinner.NumberEditor(spnYCord, "0.000000"));
+            spnXCord.setEditor(JSpinner.NumberEditor(spnXCord, "0.00000"));
+            spnYCord.setEditor(JSpinner.NumberEditor(spnYCord, "0.00000"));
 
             layout = GroupLayout(contentPane).apply {
                 setVerticalGroup(
@@ -221,7 +199,6 @@ class Window(val f: AlgebraicFractal) : JFrame() {
             }
 
         }
-         */
         pack()
         fp.plane = Plane(-2.0, 1.0, -1.0, 1.0, mainPanel.width, mainPanel.height)
         fp.pointColor = themes["green"]!!
