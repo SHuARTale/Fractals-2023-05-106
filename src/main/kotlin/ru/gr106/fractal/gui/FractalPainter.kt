@@ -9,7 +9,6 @@ import java.awt.Color
 import java.awt.Image
 import java.awt.image.BufferedImage
 import kotlin.concurrent.thread
-import kotlin.math.ln
 
 class FractalPainter (val fractal: AlgebraicFractal) : Painter{
 
@@ -84,7 +83,7 @@ class FractalPainter (val fractal: AlgebraicFractal) : Painter{
 
     override fun paint(g: Graphics) {
         var img = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-        maxIteration = 300*(ln(12/((plane?.xMax!! - plane?.xMin!!)*(plane?.yMax!! - plane?.yMin!!))+1)).toInt()
+
         if (previous_img != null ) {
             img = fullPaint(img,dx,dy)
             img.graphics.drawImage(previous_img,dx,dy,null)
@@ -97,6 +96,12 @@ class FractalPainter (val fractal: AlgebraicFractal) : Painter{
             previous_img = fullPaint(img,0,0)
             g.drawImage(previous_img, 0, 0, null)
         }
+
+
+
+//        var i = img.getSubimage(10,10,50,50)
+//        img.graphics.drawImage(i,80,80,40,40,null)
+
     }
 
     fun copy(): FractalPainter {

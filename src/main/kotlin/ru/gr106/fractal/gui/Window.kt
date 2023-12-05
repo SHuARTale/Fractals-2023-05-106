@@ -2,6 +2,8 @@ package ru.gr106.fractal.gui
 
 import drawing.Converter
 import drawing.Plane
+import math.AlgebraicFractal
+import math.Julia
 import math.Mandelbrot
 import java.awt.Color
 import java.awt.Dimension
@@ -11,18 +13,23 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.Scanner
 import javax.imageio.ImageIO
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JFileChooser
 import javax.swing.JFrame
+import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
+import javax.swing.JSpinner
+import javax.swing.SpinnerNumberModel
 import kotlin.math.*
 
-class Window : JFrame() {
+class Window(val f: AlgebraicFractal) : JFrame() {
+
+    private val af = f
+    private val const = ln(15.0)
     private val mainPanel: DrawingPanel
     private val fp: FractalPainter
     var themes: Map<String, (Float) -> Color> = mapOf()
@@ -30,9 +37,12 @@ class Window : JFrame() {
 
 
     init {
-        fp = FractalPainter(Mandelbrot)
+        fp = FractalPainter(af)
         val menuBar = createMenuBar()
-        defaultCloseOperation = EXIT_ON_CLOSE
+        if(af is Mandelbrot)
+            defaultCloseOperation = EXIT_ON_CLOSE
+        else
+            defaultCloseOperation = DISPOSE_ON_CLOSE
         minimumSize = Dimension(600, 550)
         mainPanel = DrawingPanel(fp)
 
@@ -83,6 +93,10 @@ class Window : JFrame() {
         })
         mainPanel.addSelectedListener { rect ->
             fp.plane?.let {
+                val pxMin = it.xMin
+                val pxMax = it.xMax
+                val pyMin = it.yMin
+                val pyMax = it.yMax
                 val xMin = Converter.xScr2Crt(rect.x, it)
                 val yMax = Converter.yScr2Crt(rect.y, it)
                 val xMax = Converter.xScr2Crt(rect.x + rect.width, it)
@@ -91,6 +105,7 @@ class Window : JFrame() {
                 it.yMin = yMin
                 it.xMax = xMax
                 it.yMax = yMax
+                fp.maxIteration = (fp.maxIteration*ln((pxMax-pxMin)*(pyMax-pyMin)/((it.xMax-it.xMin)*(it.yMax-it.yMin)))/const).toInt()
                 fp.previous_img = null
                 mainPanel.repaint()
             }
@@ -117,11 +132,133 @@ class Window : JFrame() {
                     .addGap(4)
             )
         }
+        /*
+        if (af is Mandelbrot)
+            layout = GroupLayout(contentPane).apply {
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(8)
+
+                )
+                setHorizontalGroup(
+                    createParallelGroup()
+                        .addComponent(menuBar)
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(mainPanel)
+                                .addGap(8)
+                        )
+                        .addGap(4)
+                )
+            }
+        else {
+            val lblXCord = JLabel("X: ")
+            val lblYCord = JLabel("Y: ")
+            val mdlXCord = SpinnerNumberModel(-0.74543 as Double, null, null, 0.000001)
+            val mdlYCord = SpinnerNumberModel(0.11301 as Double, null, null, 0.000001)
+            val spnXCord = JSpinner(mdlXCord)
+            val spnYCord = JSpinner(mdlYCord)
+
+            mdlXCord.addChangeListener{
+
+                val test = Julia(mdlXCord.value as Double, (af as Julia).y)
+                af = test
+                mainPanel.repaint()
+            }
+            mdlYCord.addChangeListener{
+                (af as Julia).y = mdlYCord.value as Double
+                mainPanel.repaint()
+            }
+
+            spnXCord.setEditor(JSpinner.NumberEditor(spnXCord, "0.000000"));
+            spnYCord.setEditor(JSpinner.NumberEditor(spnYCord, "0.000000"));
+
+            layout = GroupLayout(contentPane).apply {
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(4)
+                        .addGroup(
+                            createParallelGroup()
+                                .addComponent(lblXCord)
+                                .addComponent(spnXCord, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                                .addComponent(lblYCord)
+                                .addComponent(spnYCord, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        )
+                        .addGap(8)
+
+
+                )
+                setHorizontalGroup(
+                    createParallelGroup()
+                        .addComponent(menuBar)
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(mainPanel)
+                                .addGap(8)
+                        )
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(lblXCord)
+                                .addGap(4)
+                                .addComponent(spnXCord)
+                                .addGap(4)
+                                .addComponent(lblYCord)
+                                .addGap(4)
+                                .addComponent(spnYCord)
+                                .addGap(8)
+                        )
+                        .addGap(4)
+                )
+            }
+
+        }
+         */
         pack()
         fp.plane = Plane(-2.0, 1.0, -1.0, 1.0, mainPanel.width, mainPanel.height)
         fp.pointColor = themes["green"]!!
+
+//        fp.pointColor = {
+//            if (it == 1f) Color.BLACK else
+//                Color(
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                    (2*asin(it + PI*(tan(it)))/PI).absoluteValue.toFloat(),
+//                    (2* atan(it + PI*(1-cos(it))) / PI).absoluteValue.toFloat(),
+//                    (2*acos(it+ PI*(1-sin(it)))/PI).absoluteValue.toFloat(),
+//                )
+//        }
         MovieMaker.fpp = fp
     }
+
+/*
+удачные темы
+
+красная:
+cos(it+PI*(0.5+sin(it))).absoluteValue.toFloat(),
+cos(it + PI*(0.5+cos(it))).absoluteValue.toFloat(),
+(0.1*cos(it)).absoluteValue.toFloat(),
+
+сиреневенькое
+cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
+                    (2*atan(it + PI*(tan(it)))/ PI).absoluteValue.toFloat(),
+                    cos(it+PI*(0.5+sin(it))).absoluteValue.toFloat(),
+
+желто-зеленый
+(2*asin(it + PI*(sin(it)))/PI).absoluteValue.toFloat(),
+                    (2*atan(it + PI*(tan(it)))/ PI).absoluteValue.toFloat(),
+                    (2*acos(it+ PI*(cos(it)))/PI).absoluteValue.toFloat(),
+ */
+
+
     private fun createMenuBar(): JMenuBar {
         val menuBar = JMenuBar()
         this.add(menuBar)
@@ -198,39 +335,48 @@ class Window : JFrame() {
         menuBar.add(observe)
         observe.addActionListener { _: ActionEvent -> joulbertFunc() }
 
-        val joulbert = JMenuItem("Отрисовать множество Жюльберта")
-        joulbert.setMnemonic('Ж')
-        joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
-        observe.add(joulbert)
+        if(af !is Julia) {
+            val joulbert = JMenuItem("Отрисовать множество Жюльберта")
+            joulbert.setMnemonic('Ж')
+            joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
+            observe.add(joulbert)
+        }
 
         val view = JMenuItem("Экскурсия")
         view.setMnemonic('Э')
         view.addActionListener { _: ActionEvent -> viewFunc() }
         observe.add(view)
+
+        /*
+        val joulbert = JMenuItem("Жюльберт")
+
+        joulbert.setMnemonic('Ж')
+        menuBar.add(joulbert)
+        joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
+        */
+        /*
+        val joulbertBtn = JButton("Отрисовать множество Жюльберта")
+        joulbertBtn.addActionListener { joulbertFunc() }
+        this.add(joulbertBtn)
+
+        val viewBtn = JButton("Экскурсия по фракталу")
+        viewBtn.addActionListener { viewFunc() }
+        viewBtn.alignmentX = RIGHT_ALIGNMENT
+        //viewBtn.alignmentY = RIGHT_ALIGNMENT
+        this.add(viewBtn)
+        * */
+
         return menuBar
     }
 
     private fun loadFunc() {
-        val fileChooser = JFileChooser()
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES)
-        val ok = fileChooser.showOpenDialog(null)
-        if (ok==0) {
-            val path: String? = fileChooser.selectedFile.toString()
-            val parts = Scanner(File(path)).nextLine().split(" ")
-            fp.plane?.let { p ->
-                p.xMin = parts[0].toDouble()
-                p.xMax = parts[1].toDouble()
-                p.yMin = parts[2].toDouble()
-                p.yMax = parts[3].toDouble()
-                fp.pointColor = themes[parts[4]]!!
-                fp.previous_img= null
-                mainPanel.repaint()
-            }
-        }
+
     }
 
     private fun joulbertFunc() {
-
+        Window(Julia()).apply { isVisible = true
+            title = "Множество Жюлиа"
+        }
     }
 
     private fun redoFunc() {
@@ -294,6 +440,13 @@ class Window : JFrame() {
                             ((fp.width / 2) - width / 2).toInt(),
                             (bufferedImage.height).toInt()
                         )
+
+//                        g.drawLine(0,
+//                            (bufferedImage.height - 2*height).toInt(),
+//                            bufferedImage.width,
+//                            (bufferedImage.height - 2*height).toInt()
+//                        )
+
                         val epsX = Converter.xScr2Crt(1, plane) - Converter.xScr2Crt(0, plane)
                         step = (Converter.xScr2Crt(fp.width, plane) - Converter.xScr2Crt(0, plane)) / 8.0
                         for (xS in 0..fp.width) {
@@ -320,27 +473,15 @@ class Window : JFrame() {
     }
 
     private fun saveFunc() {
-        val fileChooser = JFileChooser()
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
-        val ok = fileChooser.showSaveDialog(null)
-        if (ok==0) {
-            val path: String? = fileChooser.selectedFile.toString()
-            fp.plane?.let { p ->
-                val xMin = p.xMin.toString()+" "
-                val xMax = p.xMax.toString()+" "
-                val yMin = p.yMin.toString()+" "
-                val yMax = p.yMax.toString()+" "
-                File(path).writeText(xMin+xMax+yMin+yMax+themes.filter { fp.pointColor == it.value }.keys.first())
-            }
-        }
+
     }
 
-private fun viewFunc() {
-    FractalTourMenu()
-}
+    private fun viewFunc() {
+        FractalTourMenu()
+    }
 
-private fun undoFunc() {
+    private fun undoFunc() {
 
-}
+    }
 
 }
