@@ -2,23 +2,31 @@ package ru.gr106.fractal.gui
 
 import drawing.Converter
 import drawing.Plane
-import math.*
+import math.AlgebraicFractal
+import math.Julia
+import math.Mandelbrot
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.lang.reflect.MalformedParameterizedTypeException
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
+import javax.swing.JFileChooser
 import javax.swing.JFrame
+import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
+import javax.swing.JSpinner
+import javax.swing.SpinnerNumberModel
 import kotlin.math.*
 
 class Window(val f: AlgebraicFractal) : JFrame() {
-
 
     private val af = f
     private val const = ln(15.0)
@@ -29,7 +37,7 @@ class Window(val f: AlgebraicFractal) : JFrame() {
 
 
     init {
-        fp = FractalPainter(f)
+        fp = FractalPainter(af)
         val menuBar = createMenuBar()
         if(af is Mandelbrot)
             defaultCloseOperation = EXIT_ON_CLOSE
@@ -42,7 +50,7 @@ class Window(val f: AlgebraicFractal) : JFrame() {
             "green" to {
                 if (it == 1f) Color.BLACK else
                     Color(
-                        0.5f * (1 - cos(16f * it* it)).absoluteValue,
+                        0.5f * (1 - cos(16f * it * it)).absoluteValue,
                         sin(5f * it).absoluteValue,
                         log10(1f + 5 * it).absoluteValue
                     )
@@ -56,13 +64,13 @@ class Window(val f: AlgebraicFractal) : JFrame() {
                     )
 
             },
-            "lilac" to {
+            "red-blue" to {
                 if (it == 1f) Color.BLACK else
                     Color(
-                        cos(it + PI * (0.5 + it)).absoluteValue.toFloat(),
-                        (2 * atan(it + PI * (tan(it))) / PI).absoluteValue.toFloat(),
-                        cos(it + PI * (0.5 + sin(it))).absoluteValue.toFloat(),
-                    )
+                        (0.5*cos(it + PI * (0.5 + it))).absoluteValue.toFloat(),
+                        (0.1*cos(it + PI * (0.5 + sin(it)))).absoluteValue.toFloat(),
+                        (2 * atan(it*tan(it) + PI * (tan(it)*tan(it))) / PI).absoluteValue.toFloat(),
+                    ).brighter()
             },
             "yellow-green" to {
                 if (it == 1f) Color.BLACK else
@@ -104,28 +112,14 @@ class Window(val f: AlgebraicFractal) : JFrame() {
         }
         mainPanel.background = Color.WHITE
         layout = GroupLayout(contentPane).apply {
-            if(af is Mandelbrot)
-                setVerticalGroup(
-                    createSequentialGroup()
-                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-                        .addGap(4)
-                        .addComponent(mainPanel)
-                        .addGap(8)
+            setVerticalGroup(
+                createSequentialGroup()
+                    .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                    .addGap(4)
+                    .addComponent(mainPanel)
+                    .addGap(8)
 
-                )
-            else
-                setVerticalGroup(
-                    createSequentialGroup()
-                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-                        .addGap(4)
-                        .addComponent(mainPanel)
-                        .addGap(4)
-                        .addGroup()
-                        .addGap(8)
-
-                )
-
-
+            )
             setHorizontalGroup(
                 createParallelGroup()
                     .addComponent(menuBar)
@@ -138,9 +132,99 @@ class Window(val f: AlgebraicFractal) : JFrame() {
                     .addGap(4)
             )
         }
+        /*
+        if (af is Mandelbrot)
+            layout = GroupLayout(contentPane).apply {
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(8)
+
+                )
+                setHorizontalGroup(
+                    createParallelGroup()
+                        .addComponent(menuBar)
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(mainPanel)
+                                .addGap(8)
+                        )
+                        .addGap(4)
+                )
+            }
+        else {
+            val lblXCord = JLabel("X: ")
+            val lblYCord = JLabel("Y: ")
+            val mdlXCord = SpinnerNumberModel(-0.74543 as Double, null, null, 0.000001)
+            val mdlYCord = SpinnerNumberModel(0.11301 as Double, null, null, 0.000001)
+            val spnXCord = JSpinner(mdlXCord)
+            val spnYCord = JSpinner(mdlYCord)
+
+            mdlXCord.addChangeListener{
+
+                val test = Julia(mdlXCord.value as Double, (af as Julia).y)
+                af = test
+                mainPanel.repaint()
+            }
+            mdlYCord.addChangeListener{
+                (af as Julia).y = mdlYCord.value as Double
+                mainPanel.repaint()
+            }
+
+            spnXCord.setEditor(JSpinner.NumberEditor(spnXCord, "0.000000"));
+            spnYCord.setEditor(JSpinner.NumberEditor(spnYCord, "0.000000"));
+
+            layout = GroupLayout(contentPane).apply {
+                setVerticalGroup(
+                    createSequentialGroup()
+                        .addComponent(menuBar, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        .addGap(4)
+                        .addComponent(mainPanel)
+                        .addGap(4)
+                        .addGroup(
+                            createParallelGroup()
+                                .addComponent(lblXCord)
+                                .addComponent(spnXCord, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                                .addComponent(lblYCord)
+                                .addComponent(spnYCord, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                        )
+                        .addGap(8)
+
+
+                )
+                setHorizontalGroup(
+                    createParallelGroup()
+                        .addComponent(menuBar)
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(mainPanel)
+                                .addGap(8)
+                        )
+                        .addGroup(
+                            createSequentialGroup()
+                                .addGap(8)
+                                .addComponent(lblXCord)
+                                .addGap(4)
+                                .addComponent(spnXCord)
+                                .addGap(4)
+                                .addComponent(lblYCord)
+                                .addGap(4)
+                                .addComponent(spnYCord)
+                                .addGap(8)
+                        )
+                        .addGap(4)
+                )
+            }
+
+        }
+         */
         pack()
         fp.plane = Plane(-2.0, 1.0, -1.0, 1.0, mainPanel.width, mainPanel.height)
-        fp.pointColor = themes["lilac"]!!
+        fp.pointColor = themes["green"]!!
 
 //        fp.pointColor = {
 //            if (it == 1f) Color.BLACK else
@@ -228,11 +312,11 @@ cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
             mainPanel.repaint()
         }
 
-        val lilacTheme = JMenuItem("Сиреневая тема")
+        val lilacTheme = JMenuItem("Красно-синяя тема")
         theme.add(lilacTheme)
         lilacTheme.setMnemonic('С')
         lilacTheme.addActionListener { _: ActionEvent ->
-            fp.pointColor = themes["lilac"]!!
+            fp.pointColor = themes["red-blue"]!!
             fp.previous_img = null
             mainPanel.repaint()
         }
@@ -252,10 +336,10 @@ cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
         observe.addActionListener { _: ActionEvent -> joulbertFunc() }
 
         if(af !is Julia) {
-        val joulbert = JMenuItem("Отрисовать множество Жюльберта")
-        joulbert.setMnemonic('Ж')
-        joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
-        observe.add(joulbert)
+            val joulbert = JMenuItem("Отрисовать множество Жюльберта")
+            joulbert.setMnemonic('Ж')
+            joulbert.addActionListener { _: ActionEvent -> joulbertFunc() }
+            observe.add(joulbert)
         }
 
         val view = JMenuItem("Экскурсия")
@@ -298,9 +382,94 @@ cos(it + PI*(0.5 + it)).absoluteValue.toFloat(),
     private fun redoFunc() {
 
     }
+    private fun saveJPGFunc(){
+        val fileChooser = JFileChooser()
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+        val ok = fileChooser.showSaveDialog(null)
+        if (ok==0) {
+            var path: String? = fileChooser.selectedFile.toString()
+            if (path.isNullOrEmpty() ||
+                path.length < 5
+            ) path = null
+            else if (!path.endsWith('\\')) path += "\\fractal.jpg"
+            else if (!path.endsWith(".jpg")) path += ".jpg"
 
-    private fun saveJPGFunc() {
+            var bufferedImage = BufferedImage(
+                fp.width + 10,
+                fp.height + 40,
+                BufferedImage.TYPE_INT_RGB
+            )
+            val g: Graphics = bufferedImage.createGraphics().also {
+                it.color = Color.WHITE
+            }
+            fp.previous_img?.let {
+                g.drawImage(
+                    it,
+                    10,
+                    0,
+                    null
+                )
+                //g.drawLine(0, 0, 0, bufferedImage.height)
 
+                fp.plane?.let { plane ->
+                    val epsY = Converter.yScr2Crt(0, plane) - Converter.yScr2Crt(1, plane)
+                    var step = (Converter.yScr2Crt(fp.height, plane) - Converter.yScr2Crt(0, plane)) / 8.0
+                    for (yS in 0..fp.height) {
+                        val y = Converter.yScr2Crt(yS, plane)
+                        var h = 5
+                        if (abs(y % step) < epsY) {
+                            if (abs(y % (2 * step)) < epsY) {
+                                h += 5
+                            }
+                            g.drawLine(0, yS, h, yS)
+                        }
+                    }
+
+                    val string1 = "XMin = ${Converter.xScr2Crt(0, plane)}," +
+                            " XMax = ${Converter.xScr2Crt(fp.width, plane)}"
+                    val string2 = "YMin = ${Converter.yScr2Crt(0, plane)}," +
+                            " YMax = ${Converter.yScr2Crt(fp.height, plane)}"
+                    with(g.fontMetrics.getStringBounds(string1, g)) {
+                        g.drawString(
+                            string1,
+                            ((fp.width / 2) - width / 2).toInt(),
+                            (bufferedImage.height - height).toInt()
+                        )
+                        g.drawString(
+                            string2,
+                            ((fp.width / 2) - width / 2).toInt(),
+                            (bufferedImage.height).toInt()
+                        )
+
+//                        g.drawLine(0,
+//                            (bufferedImage.height - 2*height).toInt(),
+//                            bufferedImage.width,
+//                            (bufferedImage.height - 2*height).toInt()
+//                        )
+
+                        val epsX = Converter.xScr2Crt(1, plane) - Converter.xScr2Crt(0, plane)
+                        step = (Converter.xScr2Crt(fp.width, plane) - Converter.xScr2Crt(0, plane)) / 8.0
+                        for (xS in 0..fp.width) {
+                            val x = Converter.xScr2Crt(xS, plane)
+                            var h = 5
+                            if (abs(x % step) < epsX) {
+                                if (abs(x % (2 * step)) < epsX) {
+                                    h += 5
+                                }
+                                g.drawLine(
+                                    xS, (bufferedImage.height - 2 * height).toInt(),
+                                    xS, (bufferedImage.height - 2 * height).toInt() - h
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            path?.let {
+                ImageIO.write(bufferedImage, "jpg", File(it))
+            }
+        }
     }
 
     private fun saveFunc() {

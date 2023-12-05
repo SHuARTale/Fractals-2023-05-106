@@ -1,14 +1,16 @@
-package math.fractals
+package math
 
 import math.Complex
 
-class Julia(var cX: Double = -0.74543, var cY: Double = 0.11301) : AlgebraicFractal {
+class Julia(cX: Double = -0.74543, cY: Double = 0.11300) : AlgebraicFractal {
+    public var x = cX
+    public var y = cY
     override var maxIterations: Int = 300
         set(value) { field = value.coerceIn(20..10000)}
     var r = 2.0
     override fun isInSet(_z: Complex): Float {
         val z = Complex(_z.re,_z.im)
-        val c = Complex(cX, cY)
+        val c = Complex(x, y)
         val r2 = r*r
         for (i in 1..maxIterations){
             z*=z
